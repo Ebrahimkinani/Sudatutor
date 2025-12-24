@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma"
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/auth/auth"
 import { ContextPickerModal } from "@/components/context/ContextPickerModal"
 import { Button } from "@/components/ui/button"
 

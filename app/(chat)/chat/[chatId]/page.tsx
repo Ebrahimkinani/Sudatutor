@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/auth/auth"
 import { prisma } from "@/lib/db/prisma"
 import { ChatShell } from "@/components/chat/ChatShell"
 import { MessageList } from "@/components/chat/MessageList"

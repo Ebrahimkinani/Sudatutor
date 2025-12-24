@@ -3,7 +3,7 @@ import { hash } from "bcryptjs"
 import { prisma } from "@/lib/db/prisma"
 import { registerSchema } from "@/lib/validators/auth"
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/auth/auth"
 
 export async function POST(req: Request) {
     try {

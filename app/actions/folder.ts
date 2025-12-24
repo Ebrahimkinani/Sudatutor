@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/db/prisma"
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/auth/auth"
 import { revalidatePath } from "next/cache"
 
 export async function createFolder(name: string, className?: string, subjectName?: string) {

@@ -5,6 +5,8 @@ import { Suspense } from "react"
 import { DottedSurface } from "@/components/ui/dotted-surface"
 import { MagneticText } from "@/components/ui/morphing-cursor"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
     title: "Login",
     description: "Login to your account",

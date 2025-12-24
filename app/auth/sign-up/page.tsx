@@ -4,6 +4,8 @@ import { Suspense } from "react"
 import { DottedSurface } from "@/components/ui/dotted-surface"
 import { MagneticText } from "@/components/ui/morphing-cursor"
 
+export const dynamic = "force-dynamic"
+
 export const metadata = {
     title: "Create an account",
     description: "Create an account to get started.",

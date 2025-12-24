@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/shell/Sidebar"
 import { MobileSidebar } from "@/components/shell/MobileSidebar"
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db/prisma"
 
