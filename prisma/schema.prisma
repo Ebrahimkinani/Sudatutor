@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  name          String?
+  image         String?
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+
+  selectedClass   String?
+  selectedSubject String?
+  role            Role      @default(USER)
+
+  sessions      ChatSession[]
+  folders       Folder[]
+
+  admin         Admin?
+  
+  @@index([createdAt])
+}
+
+model Folder {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  name      String
+  createdAt DateTime @default(now())
+  
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions  ChatSession[]
+
+  className   String?
+  subjectName String?
+
+  @@index([userId])
+}
+
+model ChatSession {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String    @db.ObjectId
+  classId       String?   @db.ObjectId
+  subjectId     String?   @db.ObjectId
+  folderId      String?   @db.ObjectId
+  title         String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastMessageAt DateTime  @default(now())
+  messageCount  Int       @default(0)
+  
+  // Denormalized fields for performance
+  className     String
+  subjectName   String
+  
+  // Relations
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class         Class?    @relation(fields: [classId], references: [id])
+  subject       Subject?  @relation(fields: [subjectId], references: [id])
+  folder        Folder?   @relation(fields: [folderId], references: [id])
+  messages      Message[]
+
+  @@index([userId])
+  @@index([classId])
+  @@index([subjectId])
+  @@index([folderId])
+  @@index([userId, updatedAt]) // Optimization for "Recent Chats" list
+  @@index([userId, lastMessageAt, id])
+}
+
+model Class {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  grade     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subjects  Subject[]
+  sessions  ChatSession[]
+
+  @@index([createdAt])
+}
+
+model Subject {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  classId   String   @db.ObjectId
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class     Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
+  sessions  ChatSession[]
+
+  @@index([classId])
+  @@index([createdAt])
+}
+
+model Message {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId     String    @db.ObjectId
+  role          String    // system | user | assistant | event
+  content       String
+  createdAt     DateTime  @default(now())
+  meta          Json?
+
+  session       ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([sessionId, createdAt, id]) // Optimization for loading chat scrolling
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model AnalyticsEvent {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String?  @db.ObjectId
+  classId       String?  @db.ObjectId
+  subjectId     String?  @db.ObjectId
+  chatSessionId String?  @db.ObjectId
+  eventType     String   // "app_open" | "chat_started" | "message_sent" | "chat_ended"
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([eventType, createdAt])
+  @@index([classId, createdAt])
+  @@index([subjectId, createdAt])
+}
+
+model DailyUserStats {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  date        DateTime @unique
+  totalUsers  Int      @default(0)
+  newUsers    Int      @default(0)
+  activeUsers Int      @default(0)
+}
+
+model DailyClassStats {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  date           DateTime
+  classId        String   @db.ObjectId
+  activeStudents Int      @default(0)
+  chats          Int      @default(0)
+  messages       Int      @default(0)
+
+  @@unique([date, classId])
+}
+
+model DailySubjectStats {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  date           DateTime
+  subjectId      String   @db.ObjectId
+  activeStudents Int      @default(0)
+  chats          Int      @default(0)
+  messages       Int      @default(0)
+
+  @@unique([date, subjectId])
+}
+
+model Admin {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
