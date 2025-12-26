@@ -1,37 +1,26 @@
-
-import { analyticsService } from "@/modules/analytics/services/analytics.service";
-import { AnalyticsDateFilter } from "@/components/admin/AnalyticsDateFilter";
-import { AnalyticsTable } from "@/components/admin/AnalyticsTable";
-import { subDays, startOfDay } from "date-fns";
+import { classService } from "@/app/api/admin/classes/class.service";
+import { ClassesTable } from "@/components/admin/classes/ClassesTable";
+import { ClassDialog } from "@/components/admin/ClassDialog";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminClassesPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ [key: string]: string | undefined }>
-}) {
-    const params = await searchParams;
-    const defaultTo = new Date();
-    const defaultFrom = startOfDay(subDays(defaultTo, 30));
-
-    const from = params.from ? new Date(params.from) : defaultFrom;
-    const to = params.to ? new Date(params.to) : defaultTo;
-
-    const data = await analyticsService.getClassesStats({ from, to });
-
-    const columns = [
-        { key: "name", label: "Class Name" },
-        { key: "activeStudents", label: "Active Students" },
-        { key: "chats", label: "Total Chats" },
-        { key: "messages", label: "Total Messages" },
-    ];
+export default async function AdminClassesPage() {
+    const { classes } = await classService.getClassesList({});
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">Classes Analytics</h1>
-            <AnalyticsDateFilter />
-            <AnalyticsTable data={data} columns={columns} />
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold tracking-tight">Classes Management</h1>
+                <ClassDialog>
+                    <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Class
+                    </Button>
+                </ClassDialog>
+            </div>
+            <ClassesTable data={classes} />
         </div>
     );
 }

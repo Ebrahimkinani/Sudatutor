@@ -2,9 +2,6 @@
 
 import { AdminTable, Column } from "@/components/admin/AdminTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
-import Link from "next/link";
 
 interface ChatItem {
     id: string;
@@ -61,18 +58,6 @@ export function ChatsTable({ data }: ChatsTableProps) {
             label: "Last Active",
             sortable: true,
             render: (item) => new Date(item.lastMessageAt).toLocaleString()
-        },
-        {
-            key: "actions",
-            label: "Actions",
-            className: "w-[100px]",
-            render: (item) => (
-                <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/admin/chats/${item.id}`}>
-                        Open <ExternalLink className="ml-2 h-4 w-4" />
-                    </Link>
-                </Button>
-            )
         }
     ];
 

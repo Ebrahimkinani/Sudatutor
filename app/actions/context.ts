@@ -9,7 +9,7 @@ import { z } from "zod"
 
 const contextSchema = z.object({
     className: z.string().min(1, "Class is required"),
-    subjectName: z.string().min(1, "Subject is required"),
+    subjectId: z.string().min(1, "Subject is required"),
     folderId: z.string().optional(),
 })
 
@@ -27,7 +27,7 @@ export async function saveContext(prevState: ContextState, formData: FormData): 
 
     const rawData = {
         className: formData.get("className"),
-        subjectName: formData.get("subjectName"),
+        subjectId: formData.get("subjectId"),
         folderId: formData.get("folderId") || undefined,
     }
 
@@ -38,11 +38,21 @@ export async function saveContext(prevState: ContextState, formData: FormData): 
     }
 
     try {
+        // Fetch the subject to get its name
+        const subject = await prisma.subject.findUnique({
+            where: { id: validatedData.data.subjectId },
+            select: { name: true }
+        })
+
+        if (!subject) {
+            return { success: false, message: "Subject not found" }
+        }
+
         await prisma.user.update({
             where: { email: session.user.email },
             data: {
                 selectedClass: validatedData.data.className,
-                selectedSubject: validatedData.data.subjectName,
+                selectedSubject: subject.name,
             },
             select: { id: true }
         })

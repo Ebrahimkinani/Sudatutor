@@ -45,6 +45,14 @@ export class SubjectRepository {
         return prisma.subject.count({ where });
     }
 
+    async findAllActive() {
+        return prisma.subject.findMany({
+            where: { isActive: true },
+            select: { id: true, name: true, classId: true },
+            orderBy: { name: 'asc' }
+        });
+    }
+
     async create(data: { name: string; classId: string; isActive?: boolean }) {
         return prisma.subject.create({
             data

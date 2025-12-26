@@ -3,6 +3,8 @@ import { authOptions } from "@/lib/auth/auth"
 import { prisma } from "@/lib/db/prisma"
 import { HomeContextForm } from "@/components/dashboard/HomeContextForm"
 import { InfiniteGrid } from "@/components/ui/the-infinite-grid"
+import { classRepo } from "@/app/api/admin/classes/class.repo"
+import { subjectRepo } from "@/app/api/admin/subjects/subject.repo"
 
 export default async function HomePage() {
     const session = await getServerSession(authOptions)
@@ -16,6 +18,10 @@ export default async function HomePage() {
         where: { email: session.user.email },
         select: { selectedClass: true, selectedSubject: true }
     })
+
+    // Fetch active classes and subjects from database
+    const classes = await classRepo.findAllActive()
+    const subjects = await subjectRepo.findAllActive()
 
     return (
         <InfiniteGrid className="pb-20">
@@ -32,6 +38,8 @@ export default async function HomePage() {
                 <HomeContextForm
                     defaultClass={user?.selectedClass}
                     defaultSubject={user?.selectedSubject}
+                    classes={classes}
+                    subjects={subjects}
                 />
             </div>
         </InfiniteGrid>

@@ -32,6 +32,14 @@ export class ClassRepository {
         return prisma.class.count();
     }
 
+    async findAllActive() {
+        return prisma.class.findMany({
+            where: { isActive: true },
+            select: { id: true, name: true },
+            orderBy: { name: 'asc' }
+        });
+    }
+
     async create(data: { name: string; grade?: string; isActive?: boolean }) {
         return prisma.class.create({
             data

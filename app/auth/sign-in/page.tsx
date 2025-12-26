@@ -2,7 +2,6 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { UserAuthForm } from "@/components/auth/UserAuthForm"
 import { Suspense } from "react"
-import { DottedSurface } from "@/components/ui/dotted-surface"
 import { MagneticText } from "@/components/ui/morphing-cursor"
 
 export const dynamic = "force-dynamic"
@@ -15,7 +14,6 @@ export const metadata: Metadata = {
 export default function LoginPage() {
     return (
         <div className="flex h-screen w-full flex-col items-center justify-center px-4">
-            <DottedSurface />
             <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                 <div className="flex flex-col space-y-2 text-center">
                     <MagneticText

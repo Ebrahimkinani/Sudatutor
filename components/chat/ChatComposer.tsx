@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { SendHorizontal } from "lucide-react"
 import { useRef, useState } from "react"
 import { useFormStatus } from "react-dom"
-import { sendMessage } from "@/app/actions/chat"
+import { sendMessageAction } from "@/app/actions/chat"
 import { useSearchParams } from "next/navigation"
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -42,10 +42,8 @@ export function ChatComposer({ chatId }: { chatId: string }) {
             <div className="max-w-3xl mx-auto">
                 <form
                     ref={formRef}
-                    action={async (formData) => {
-                        setInput("") // Optimistic clear
-                        await sendMessage(null, formData)
-                    }}
+                    action={sendMessageAction}
+                    onSubmit={() => setInput("")}
                     className="flex items-end gap-3 bg-white p-2 rounded-2xl border shadow-sm focus-within:ring-2 focus-within:ring-[#7551a2]/20 transition-all"
                 >
                     <input type="hidden" name="chatId" value={chatId} />

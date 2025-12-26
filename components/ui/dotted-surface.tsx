@@ -17,10 +17,32 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 		particles: THREE.Points[];
 		animationId: number;
 		count: number;
+		geometry: THREE.BufferGeometry;
 	} | null>(null);
+	const isMountedRef = useRef(false);
+
+	// Handle theme changes separately without reinitializing the entire scene
+	useEffect(() => {
+		if (!sceneRef.current) return;
+
+		const geometry = sceneRef.current.geometry;
+		const colorAttribute = geometry.attributes.color;
+		if (!colorAttribute) return;
+
+		const colors = colorAttribute.array as Float32Array;
+		const newColor = theme === 'dark' ? 200 : 0;
+
+		for (let i = 0; i < colors.length; i++) {
+			colors[i] = newColor;
+		}
+
+		colorAttribute.needsUpdate = true;
+	}, [theme]);
 
 	useEffect(() => {
-		if (!containerRef.current) return;
+		// Prevent re-initialization if already mounted
+		if (isMountedRef.current || !containerRef.current) return;
+		isMountedRef.current = true;
 
 		const SEPARATION = 150;
 		const AMOUNTX = 40;
@@ -93,9 +115,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
 		let count = 0;
 		let animationId: number = 0;
+		let isAnimating = true;
 
 		// Animation function
 		const animate = () => {
+			if (!isAnimating) return;
+
 			animationId = requestAnimationFrame(animate);
 
 			const positionAttribute = geometry.attributes.position;
@@ -150,37 +175,38 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 			particles: [points],
 			animationId,
 			count,
+			geometry,
 		};
 
 		// Cleanup function
 		return () => {
+			isAnimating = false;
+			isMountedRef.current = false;
 			window.removeEventListener('resize', handleResize);
 
-			if (sceneRef.current) {
-				cancelAnimationFrame(sceneRef.current.animationId);
+			if (animationId) {
+				cancelAnimationFrame(animationId);
+			}
 
-				// Clean up Three.js objects
-				sceneRef.current.scene.traverse((object: THREE.Object3D) => {
-					if (object instanceof THREE.Points) {
-						object.geometry.dispose();
-						if (Array.isArray(object.material)) {
-							object.material.forEach((material: THREE.Material) => material.dispose());
-						} else {
-							object.material.dispose();
-						}
+			// Clean up Three.js objects
+			scene.traverse((object: THREE.Object3D) => {
+				if (object instanceof THREE.Points) {
+					object.geometry.dispose();
+					if (Array.isArray(object.material)) {
+						object.material.forEach((material: THREE.Material) => material.dispose());
+					} else {
+						object.material.dispose();
 					}
-				});
-
-				sceneRef.current.renderer.dispose();
-
-				if (containerRef.current && sceneRef.current.renderer.domElement) {
-					containerRef.current.removeChild(
-						sceneRef.current.renderer.domElement,
-					);
 				}
+			});
+
+			renderer.dispose();
+
+			if (containerRef.current && renderer.domElement && containerRef.current.contains(renderer.domElement)) {
+				containerRef.current.removeChild(renderer.domElement);
 			}
 		};
-	}, [theme]);
+	}, []); // Empty dependency array - only run once on mount
 
 	return (
 		<div

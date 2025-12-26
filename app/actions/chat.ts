@@ -17,7 +17,7 @@ export async function createChatSession(_formData: FormData) {
 
     try {
         const newChat = await chatService.createSession(session.user.id)
-        revalidatePath("/history")
+        revalidatePath("/")
         redirect(`/chat/${newChat.id}`)
     } catch (e) {
         // If it's a redirect, let it pass
@@ -63,6 +63,36 @@ export async function sendMessage(prevState: any, formData: FormData) {
     }
 }
 
+// Wrapper for direct form action usage (no prevState parameter)
+export async function sendMessageAction(formData: FormData) {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+        redirect("/auth/login")
+    }
+
+    const content = formData.get("content") as string
+    const chatId = formData.get("chatId") as string
+    const folderId = formData.get("folderId") as string | null
+
+    const valid = sendMessageSchema.safeParse({
+        content,
+        chatId,
+        folderId: folderId || undefined
+    })
+    if (!valid.success) {
+        throw new Error("Invalid message")
+    }
+
+    const result = await chatService.sendMessage(session.user.id, valid.data)
+
+    if (chatId === "new") {
+        revalidatePath("/")
+        redirect(`/chat/${result.chatId}`)
+    }
+
+    revalidatePath(`/chat/${result.chatId}`)
+}
+
 // --- History ---
 
 export async function deleteChat(chatId: string) {
@@ -70,6 +100,5 @@ export async function deleteChat(chatId: string) {
     if (!session?.user?.id) return
 
     await chatService.deleteSession(session.user.id, chatId)
-    revalidatePath("/history")
     revalidatePath("/")
 }
