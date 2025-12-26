@@ -14,13 +14,26 @@ const prismaClientSingleton = () => {
         }
     }
 
+    // Validate connection string doesn't get logged
+    if (url && process.env.NODE_ENV === "development") {
+        // Only log that connection string exists, never the actual value
+        console.log("✅ Database connection string configured")
+    }
+
     return new PrismaClient({
         log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
         datasources: url ? {
             db: {
                 url: url
             }
-        } : undefined
+        } : undefined,
+        // Add query timeout for security (prevent long-running queries)
+        // @ts-ignore - This is a valid option but not in types
+        __internal: {
+            engine: {
+                queryTimeout: 10000, // 10 seconds
+            }
+        }
     })
 }
 
@@ -30,10 +43,15 @@ const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClientSingleton | undefined
 }
 
-if (process.env.NODE_ENV === "production" && !process.env.NEXTAUTH_URL) {
-    console.warn("⚠️ NEXTAUTH_URL is missing in production. Authentication redirects may fail.")
+// Validate environment variables on startup
+if (process.env.NODE_ENV === "production") {
+    if (!process.env.NEXTAUTH_URL) {
+        console.warn("⚠️ NEXTAUTH_URL is missing in production. Authentication redirects may fail.")
+    }
+    if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
+        console.error("❌ AUTH_SECRET or NEXTAUTH_SECRET is missing. Authentication will fail.")
+    }
 }
-
 
 export const prisma = globalForPrisma.prisma ?? prismaClientSingleton()
 

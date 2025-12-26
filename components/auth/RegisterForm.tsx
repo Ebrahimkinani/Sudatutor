@@ -45,6 +45,13 @@ export function RegisterForm() {
             const result = await response.json()
 
             if (!response.ok) {
+                // Clear password fields on error for security
+                const form = document.querySelector("form") as HTMLFormElement
+                if (form) {
+                    const passwordInputs = form.querySelectorAll('input[type="password"]')
+                    passwordInputs.forEach((input) => ((input as HTMLInputElement).value = ""))
+                }
+
                 throw new Error(result.message || "فشل التسجيل")
             }
 
@@ -53,7 +60,8 @@ export function RegisterForm() {
                 description: "تم التسجيل بنجاح. يرجى تسجيل الدخول.",
             })
 
-            router.push("/auth/login")
+            // Redirect to correct sign-in page
+            router.push("/auth/sign-in")
         } catch (error) {
             toast({
                 variant: "destructive",

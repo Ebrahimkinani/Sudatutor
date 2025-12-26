@@ -9,13 +9,25 @@ export function rateLimit(ip: string, limit: number = 5, windowMs: number = 60 *
 
     if (!record || now > record.expiresAt) {
         trackers[ip] = { count: 1, expiresAt: now + windowMs }
-        return { success: true }
+        return {
+            success: true,
+            remaining: limit - 1,
+            reset: now + windowMs
+        }
     }
 
     if (record.count >= limit) {
-        return { success: false }
+        return {
+            success: false,
+            remaining: 0,
+            reset: record.expiresAt
+        }
     }
 
     record.count++
-    return { success: true }
+    return {
+        success: true,
+        remaining: limit - record.count,
+        reset: record.expiresAt
+    }
 }

@@ -2,10 +2,10 @@ import { getToken } from "next-auth/jwt"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-// export default function proxy(req: NextRequest) {
-// Next 16 might want "proxy" named export or default. Error said "default or 'proxy'".
-// Let's try named export 'proxy' first as matches the file name concept, or default.
-// "Ensure this file has either a default or "proxy" function export."
+/**
+ * Next.js Proxy/Middleware for authentication and security
+ * Combines route protection with security headers
+ */
 export default async function proxy(req: NextRequest) {
     const token = await getToken({ req })
     const isAuth = !!token
@@ -13,7 +13,8 @@ export default async function proxy(req: NextRequest) {
 
     const { pathname } = req.nextUrl
 
-    // 2. Protect /dashboard (Admin only)
+    // 1. Check authentication and redirect if needed
+    // Protect /dashboard (Admin only)
     if (pathname.startsWith("/dashboard")) {
         if (!isAuth) {
             return NextResponse.redirect(new URL("/auth/sign-in", req.url))
@@ -23,24 +24,18 @@ export default async function proxy(req: NextRequest) {
         }
     }
 
-    // 3. Protect /home (User only)
-    // Note: The user requirement said: "/home must be logged-in-only"
+    // Protect /home (User only)
     if (pathname.startsWith("/home")) {
         if (!isAuth) {
             return NextResponse.redirect(new URL("/auth/sign-in", req.url))
         }
-        // Optional: If admin goes to /home, do we redirect to dashboard?
-        // User request: "Admin users must be redirected to /dashboard... Normal users... to /home"
-        // It doesn't explicitly forbid Admin from viewing /home, but usually better to separate.
-        // Let's keep it flexible or redirect if strict.
-        // For now, allow admin to see home if they explicitly navigate there, or redirect?
-        // Let's redirect admins to dashboard to enforce separation as implied by "Admin users must be redirected to /dashboard"
+        // Redirect admins to dashboard
         if (isAdmin) {
             return NextResponse.redirect(new URL("/dashboard", req.url))
         }
     }
 
-    // 4. Protect Auth routes (Redirect to correct dashboard/home if already logged in)
+    // Protect Auth routes (Redirect to correct dashboard/home if already logged in)
     if (pathname.startsWith("/auth")) {
         if (isAuth) {
             if (isAdmin) {
@@ -51,9 +46,52 @@ export default async function proxy(req: NextRequest) {
         }
     }
 
-    return NextResponse.next()
+    // Protect API admin routes
+    if (pathname.startsWith("/api/admin")) {
+        if (!token || token.role !== "ADMIN") {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            )
+        }
+    }
+
+    // 2. Add security headers to response
+    const response = NextResponse.next()
+
+    const securityHeaders = {
+        // Prevent clickjacking
+        "X-Frame-Options": "DENY",
+        // Prevent MIME type sniffing
+        "X-Content-Type-Options": "nosniff",
+        // Enable XSS protection
+        "X-XSS-Protection": "1; mode=block",
+        // Referrer policy
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        // Permissions policy
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        // HSTS - Force HTTPS (only in production)
+        ...(process.env.NODE_ENV === "production" && {
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        }),
+    }
+
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value)
+    })
+
+    return response
 }
 
 export const config = {
-    matcher: ["/", "/dashboard/:path*", "/home/:path*", "/auth/:path*"],
+    matcher: [
+        /*
+         * Match all request paths except:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - public folder
+         */
+        "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    ],
 }

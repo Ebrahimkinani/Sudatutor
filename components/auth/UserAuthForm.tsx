@@ -61,15 +61,24 @@ export function UserAuthForm({ className, isRegister, ...props }: UserAuthFormPr
                     body: JSON.stringify(data),
                     headers: { "Content-Type": "application/json" }
                 })
+
                 if (res.ok) {
                     // Sign in after register
                     signIn("credentials", {
                         email: data.email,
                         password: data.password,
-                        callbackUrl: "/chat",
+                        callbackUrl: "/",
                     })
                 } else {
                     const errorData = await res.json().catch(() => ({}))
+
+                    // Clear password fields on error
+                    const form = document.querySelector("form") as HTMLFormElement
+                    if (form) {
+                        const passwordInputs = form.querySelectorAll('input[type="password"]')
+                        passwordInputs.forEach((input) => ((input as HTMLInputElement).value = ""))
+                    }
+
                     toast({
                         variant: "destructive",
                         title: "فشل إنشاء الحساب",
@@ -77,6 +86,7 @@ export function UserAuthForm({ className, isRegister, ...props }: UserAuthFormPr
                     })
                 }
             } catch (e) {
+                console.error("Registration error:", e)
                 toast({
                     variant: "destructive",
                     title: "خطأ",
@@ -101,6 +111,13 @@ export function UserAuthForm({ className, isRegister, ...props }: UserAuthFormPr
                     }
                     router.refresh()
                 } else {
+                    // Clear password field on failed login
+                    const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement
+                    if (passwordInput) {
+                        passwordInput.value = ""
+                    }
+
+                    // Generic error message to prevent user enumeration
                     toast({
                         variant: "destructive",
                         title: "فشل تسجيل الدخول",
@@ -108,6 +125,14 @@ export function UserAuthForm({ className, isRegister, ...props }: UserAuthFormPr
                     })
                 }
             } catch (error) {
+                console.error("Login error:", error)
+
+                // Clear password field on error
+                const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement
+                if (passwordInput) {
+                    passwordInput.value = ""
+                }
+
                 toast({
                     variant: "destructive",
                     title: "خطأ",
