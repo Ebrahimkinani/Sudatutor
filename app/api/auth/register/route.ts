@@ -1,3 +1,4 @@
+export const runtime = "nodejs"
 import { NextResponse } from "next/server"
 import { hash } from "bcryptjs"
 import { prisma } from "@/lib/db/prisma"
@@ -93,16 +94,17 @@ export async function POST(req: Request) {
             }
         )
 
-    } catch (error) {
-        // Log error securely (sanitized)
-        logSecurityEvent("registration_error", {
-            error: error instanceof Error ? error.message : "Unknown error",
-        })
-
-        // Return generic error to prevent information disclosure
+    } catch (error: any) {
+        console.error("Registration Error:", error);
         return NextResponse.json(
-            { ok: false, code: "INTERNAL_ERROR", message: "Something went wrong" },
+            {
+                ok: false,
+                code: "INTERNAL_ERROR",
+                message: "Something went wrong",
+                // TEMPORARY: remove later after prod is fixed
+                debug: error?.message ?? String(error),
+            },
             { status: 500 }
-        )
+        );
     }
 }

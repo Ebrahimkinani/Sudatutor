@@ -1,3 +1,4 @@
+export const runtime = "nodejs"
 import { handler } from "@/lib/auth/auth"
 
 export const dynamic = "force-dynamic"

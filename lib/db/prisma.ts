@@ -3,28 +3,20 @@ import "server-only"
 
 const prismaClientSingleton = () => {
     // Support both MONGODB_URI (standard) and DATABASE_URL (Prisma default)
-    const url = process.env.MONGODB_URI || process.env.DATABASE_URL
-
-    // Prevent connection attempts if no URL is provided (prevents crashes in some environments)
-    if (!url) {
-        if (process.env.NODE_ENV === "production") {
-            console.error("❌ MONGODB_URI or DATABASE_URL is missing. Database connection will fail.")
-        } else {
-            console.warn("⚠️ MONGODB_URI or DATABASE_URL is missing.")
-        }
-    }
+    const dbUrl = process.env.MONGODB_URI || process.env.DATABASE_URL;
+    if (!dbUrl) throw new Error("Missing MONGODB_URI or DATABASE_URL");
 
     // Validate connection string doesn't get logged
-    if (url && process.env.NODE_ENV === "development") {
+    if (dbUrl && process.env.NODE_ENV === "development") {
         // Only log that connection string exists, never the actual value
         console.log("✅ Database connection string configured")
     }
 
     return new PrismaClient({
         log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-        datasources: url ? {
+        datasources: dbUrl ? {
             db: {
-                url: url
+                url: dbUrl
             }
         } : undefined,
         // Add query timeout for security (prevent long-running queries)
