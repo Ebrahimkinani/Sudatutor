@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Eye, EyeOff } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
     isRegister?: boolean
@@ -37,6 +38,7 @@ export function UserAuthForm({ className, isRegister, ...props }: UserAuthFormPr
     const [showPassword, setShowPassword] = React.useState<boolean>(false)
     const searchParams = useSearchParams()
     const router = useRouter()
+    const { toast } = useToast()
 
     async function onSubmit(data: FormData) {
         setIsLoading(true)
@@ -66,24 +68,51 @@ export function UserAuthForm({ className, isRegister, ...props }: UserAuthFormPr
                         password: data.password,
                         callbackUrl: "/chat",
                     })
-                }
-            } catch (e) { }
-        } else {
-            const signInResult = await signIn("credentials", {
-                email: data.email,
-                password: data.password,
-                redirect: false,
-                callbackUrl: searchParams?.get("from") || "/",
-            })
-
-            if (signInResult?.ok && !signInResult.error) {
-                const session = await getSession()
-                if (session?.user?.role === "ADMIN") {
-                    router.push("/dashboard")
                 } else {
-                    router.push(searchParams?.get("from") || "/")
+                    const errorData = await res.json().catch(() => ({}))
+                    toast({
+                        variant: "destructive",
+                        title: "فشل إنشاء الحساب",
+                        description: errorData.message || "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.",
+                    })
                 }
-                router.refresh()
+            } catch (e) {
+                toast({
+                    variant: "destructive",
+                    title: "خطأ",
+                    description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+                })
+            }
+        } else {
+            try {
+                const signInResult = await signIn("credentials", {
+                    email: data.email,
+                    password: data.password,
+                    redirect: false,
+                    callbackUrl: searchParams?.get("from") || "/",
+                })
+
+                if (signInResult?.ok && !signInResult.error) {
+                    const session = await getSession()
+                    if (session?.user?.role === "ADMIN") {
+                        router.push("/dashboard")
+                    } else {
+                        router.push(searchParams?.get("from") || "/")
+                    }
+                    router.refresh()
+                } else {
+                    toast({
+                        variant: "destructive",
+                        title: "فشل تسجيل الدخول",
+                        description: "البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.",
+                    })
+                }
+            } catch (error) {
+                toast({
+                    variant: "destructive",
+                    title: "خطأ",
+                    description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+                })
             }
         }
 
