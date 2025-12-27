@@ -20,18 +20,7 @@ export default async function proxy(req: NextRequest) {
             return NextResponse.redirect(new URL("/auth/sign-in", req.url))
         }
         if (!isAdmin) {
-            return NextResponse.redirect(new URL("/home", req.url))
-        }
-    }
-
-    // Protect /home (User only)
-    if (pathname.startsWith("/home")) {
-        if (!isAuth) {
-            return NextResponse.redirect(new URL("/auth/sign-in", req.url))
-        }
-        // Redirect admins to dashboard
-        if (isAdmin) {
-            return NextResponse.redirect(new URL("/dashboard", req.url))
+            return NextResponse.redirect(new URL("/", req.url))
         }
     }
 
@@ -41,7 +30,7 @@ export default async function proxy(req: NextRequest) {
             if (isAdmin) {
                 return NextResponse.redirect(new URL("/dashboard", req.url))
             } else {
-                return NextResponse.redirect(new URL("/home", req.url))
+                return NextResponse.redirect(new URL("/", req.url))
             }
         }
     }
