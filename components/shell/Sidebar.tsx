@@ -22,9 +22,11 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     folders: Folder[]
     chats: ChatSession[]
     user: User & { image: string | null }
+    classes: { id: string; name: string }[]
+    subjects: { id: string; name: string; classId: string }[]
 }
 
-export function Sidebar({ className, folders, chats, user }: SidebarProps) {
+export function Sidebar({ className, folders, chats, user, classes, subjects }: SidebarProps) {
     const [collapsed, setCollapsed] = React.useState(false)
     const pathname = usePathname()
 
@@ -72,6 +74,8 @@ export function Sidebar({ className, folders, chats, user }: SidebarProps) {
                     folders={folders}
                     chats={chats}
                     user={user}
+                    classes={classes}
+                    subjects={subjects}
                 />
             </ScrollArea>
 

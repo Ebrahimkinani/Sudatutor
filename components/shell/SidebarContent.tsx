@@ -40,9 +40,11 @@ interface SidebarContentProps {
     folders: Folder[]
     chats: ChatSession[]
     user: User & { image: string | null }
+    classes: { id: string; name: string }[]
+    subjects: { id: string; name: string; classId: string }[]
 }
 
-export function SidebarContent({ collapsed = false, onLinkClick, folders = [], chats = [], user }: SidebarContentProps) {
+export function SidebarContent({ collapsed = false, onLinkClick, folders = [], chats = [], user, classes, subjects }: SidebarContentProps) {
     const pathname = usePathname()
     const [isCreatingFolder, setIsCreatingFolder] = React.useState(false)
     const [newFolderName, setNewFolderName] = React.useState("")
@@ -172,6 +174,8 @@ export function SidebarContent({ collapsed = false, onLinkClick, folders = [], c
                                         <div className="pr-4 space-y-1">
                                             <ContextPickerModal
                                                 folderId={folder.id}
+                                                classes={classes}
+                                                subjects={subjects}
                                                 trigger={
                                                     <Button
                                                         variant="ghost"

@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db/prisma"
+import { classRepo } from "@/app/api/admin/classes/class.repo"
+import { subjectRepo } from "@/app/api/admin/subjects/subject.repo"
 
 export default async function AppLayout({
     children,
@@ -29,11 +31,28 @@ export default async function AppLayout({
     const folders = user?.folders || []
     const chats = user?.sessions || []
 
+    // Fetch active classes and subjects
+    const classes = await classRepo.findAllActive()
+    const subjects = await subjectRepo.findAllActive()
+
     return (
         <div className="flex h-screen overflow-hidden bg-background">
-            <Sidebar className="hidden md:flex border-r" folders={folders} chats={chats} user={user} />
+            <Sidebar
+                className="hidden md:flex border-r"
+                folders={folders}
+                chats={chats}
+                user={user}
+                classes={classes}
+                subjects={subjects}
+            />
             <div className="md:hidden absolute top-4 right-4 z-50">
-                <MobileSidebar folders={folders} chats={chats} user={user} />
+                <MobileSidebar
+                    folders={folders}
+                    chats={chats}
+                    user={user}
+                    classes={classes}
+                    subjects={subjects}
+                />
             </div>
             <div className="flex flex-col flex-1 overflow-hidden">
 

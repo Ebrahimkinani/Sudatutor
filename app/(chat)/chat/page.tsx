@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth"
 import { ContextPickerModal } from "@/components/context/ContextPickerModal"
 import { Button } from "@/components/ui/button"
+import { classRepo } from "@/app/api/admin/classes/class.repo"
+import { subjectRepo } from "@/app/api/admin/subjects/subject.repo"
 
 export default async function ChatPage() {
     const session = await getServerSession(authOptions)
@@ -20,6 +22,10 @@ export default async function ChatPage() {
         redirect(`/chat/${latest.id}`)
     }
 
+    // Fetch active classes and subjects
+    const classes = await classRepo.findAllActive()
+    const subjects = await subjectRepo.findAllActive()
+
     // Empty State
     return (
         <div className="flex flex-col h-screen items-center justify-center bg-gray-50">
@@ -32,6 +38,8 @@ export default async function ChatPage() {
                 </div>
 
                 <ContextPickerModal
+                    classes={classes}
+                    subjects={subjects}
                     trigger={
                         <Button size="lg" className="bg-[#7551a2] hover:bg-[#64448c] text-white px-8 text-lg font-semibold h-12 rounded-full shadow-lg hover:shadow-xl transition-all">
                             Let&apos;s Study

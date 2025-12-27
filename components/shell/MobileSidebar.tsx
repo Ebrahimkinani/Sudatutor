@@ -16,9 +16,11 @@ interface MobileSidebarProps {
     folders: Folder[]
     chats: ChatSession[]
     user: User & { image: string | null }
+    classes: { id: string; name: string }[]
+    subjects: { id: string; name: string; classId: string }[]
 }
 
-export function MobileSidebar({ folders, chats, user }: MobileSidebarProps) {
+export function MobileSidebar({ folders, chats, user, classes, subjects }: MobileSidebarProps) {
     const [open, setOpen] = useState(false)
     const pathname = usePathname()
 
@@ -54,6 +56,8 @@ export function MobileSidebar({ folders, chats, user }: MobileSidebarProps) {
                         folders={folders}
                         chats={chats}
                         user={user}
+                        classes={classes}
+                        subjects={subjects}
                     />
                 </div>
 

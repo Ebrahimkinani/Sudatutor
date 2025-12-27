@@ -86,7 +86,7 @@ export function HomeContextForm({ defaultClass, defaultSubject, folderId, classe
                                 <SelectTrigger className="w-full h-12 text-center justify-center font-medium border-black/20 focus:ring-black">
                                     <SelectValue placeholder="اختر صفك" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent position="popper">
                                     {classes.map((cls) => (
                                         <SelectItem key={cls.id} value={cls.name} className="justify-center">
                                             {cls.name}
@@ -107,7 +107,7 @@ export function HomeContextForm({ defaultClass, defaultSubject, folderId, classe
                                 <SelectTrigger className="w-full h-12 text-center justify-center font-medium border-black/20 focus:ring-black">
                                     <SelectValue placeholder={selectedClassId ? "اختر المادة" : "اختر الصف أولاً"} />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent position="popper">
                                     {filteredSubjects.map((sub) => (
                                         <SelectItem key={sub.id} value={sub.id} className="justify-center">
                                             {sub.name}
